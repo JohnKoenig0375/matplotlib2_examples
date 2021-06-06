@@ -106,7 +106,7 @@ bottom5_totals.index = time_index
 fig, [ax0, ax1] = plt.subplots(2, 1, figsize=(12,6), sharex=True)
 
 # super title is placed on the Figure object (covers entire figure because of the multiple plots)
-fig.suptitle('Top 5 vs. Bottom 5 US States\nby Total Firearm Background Check Total (1998-2021)', fontsize=18)
+fig.suptitle('Top 5 vs. Bottom 5 US States\nby Firearm Background Check Totals (1998-2021)', fontsize=18)
 fig.subplots_adjust(top=0.87)  # make room for fig title
 
 # set line colors
