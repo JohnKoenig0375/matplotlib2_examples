@@ -4,11 +4,15 @@
 Title: Matplotlib Example Code 2
 Date: 06JUN2021
 Author: John Koenig
-Purpose: Provide example code for simple matplotlib plots
-    - 
+Purpose: Provide example code for advanced matplotlib plots
+    - 2 x 1 Advanced Line Plots with custom colors and shared axis
+    - 3 x 2 Small Multiple of Line Plots with combined legend
     
-Inputs: 
+Inputs: various datasets
 Outputs: 
+    - background_checks_v1.png
+    - NYC_test_scores_v1.png
+    
 Notes:
      For Data Visalization Class (Regis University)
      Summer 2021
@@ -18,21 +22,18 @@ Notes:
 #%%
 # import libraries
 
-import os
-
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from cycler import cycler
 
-import pdb
+import matplotlib.lines as mlines
 
 dpi = 300
 
 # if you are on windows, you are going to have to change the file path to
 # windows style
 project_dir = r'/home/md33a/Python Projects/matplotlib2_examples/'
-#project_dir = os.getcwd() + 'matplotlib1_examples/'
 data_dir = project_dir + r'data/'
 output_dir = project_dir + r'output/'
 
@@ -45,7 +46,6 @@ df1_filename = 'nics-firearm-background-checks.csv'
 df1 = pd.read_csv(data_dir + df1_filename)
 df1_head = df1.iloc[:100,:]
 columns = list(df1.columns)
-
 
 # get total permit applications by state
 states_list = df1['state'].unique()
@@ -161,41 +161,85 @@ for i in range(len(elections_labels)):
 
 #plt.tight_layout()
 
-
 plot1_filename = 'background_checks_v1.png'
 fig.savefig(output_dir + plot1_filename, dpi=dpi)
 
+#%%
+# NYC Math Test Results by Grade - Citywide - by Race-Ethnicity
+# data.gov
+# https://catalog.data.gov/dataset/2006-2011-nys-math-test-results-by-grade-citywide-by-race-ethnicity
 
+df2_filename = '2006_-_2011_NYS_Math_Test_Results_by_Grade_-_Citywide_-_by_Race-Ethnicity.csv'
+df2 = pd.read_csv(data_dir + df2_filename)
+df2_head = df2.iloc[:100,:]
+columns = list(df2.columns)
 
+level_columns = ['Level 1 %',
+                 'Level 2 %',
+                 'Level 3 %',
+                 'Level 4 %']
 
+level_labels = ['Lowest',
+                ' ',
+                '  ',        # I had to add spaces to these empty labels
+                'Highest']
 
+# create color cycler
+colors3 = ['blue',
+           'green',
+           'purple',
+           'orange']
 
+# set custom color cycle
+custom_cycler3 = (cycler(color=colors3))
 
+# set default color cycler (same for all ax after this)
+default_cycler = cycler(color=colors3)
+plt.rc('axes', prop_cycle=default_cycler)
 
+# filter down to "All Grades" rows
+all_grades_df = df2[df2['Grade'] == 'All Grades']
 
+# get list of years
+years_list = list(all_grades_df['Year'].unique())
 
+# ge list of ethnic groups
+ethnic_list = list(all_grades_df['Category'].unique())
 
+# create plot
+fig, ax = plt.subplots(3, 2, figsize=(10,10), sharex=True, sharey=True)
 
+# iterate through years 2006-2011
+for i in range(len(years_list)):
+    all_grades_df_tmp = all_grades_df[all_grades_df['Year'] == years_list[i]]
+    
+    
+    for ethnic in ethnic_list:
+        ethnic_df_tmp = all_grades_df_tmp[all_grades_df_tmp['Category'] == ethnic]
+        
+        levels_tmp = ethnic_df_tmp[level_columns].T.iloc[:,0].to_list()
+        
+        if (i % 2 == 0):
+            ax[int(i/2), 0].plot(level_labels, levels_tmp)
+            ax[int(i/2), 0].set_title(years_list[i], fontsize=14)
+            ax[int(i/2), 0].yaxis.set_major_formatter(mpl.ticker.PercentFormatter())
+        else:
+            ax[int(i/2), 1].plot(level_labels, levels_tmp)
+            ax[int(i/2), 1].set_title(years_list[i], fontsize=14)
 
+fig.suptitle('NYS Test Scores in NYC by Year and Ethnicity: 2006-2011', fontsize=22)
+fig.subplots_adjust(top=0.92)  # make room for fig title
 
+fig.text(.06, .3, "Percentage of Student Scores by Category", fontsize=16, rotation=90)  # add a shared y axis label
 
+# create legend
+handles = [mlines.Line2D([], [], color='blue'),
+           mlines.Line2D([], [], color='green'),
+           mlines.Line2D([], [], color='purple'),
+           mlines.Line2D([], [], color='orange')]
 
+fig.legend(handles, ethnic_list, loc='right', fontsize=12)
+fig.subplots_adjust(right=.85)  # make room for fig legend
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+plot2_filename = 'NYC_test_scores_v1.png'
+fig.savefig(output_dir + plot2_filename, dpi=dpi)
